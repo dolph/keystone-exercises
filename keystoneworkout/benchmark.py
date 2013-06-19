@@ -1,6 +1,4 @@
-import os
 import shelve
-import tempfile
 import time
 
 
