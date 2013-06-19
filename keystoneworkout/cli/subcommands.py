@@ -15,6 +15,8 @@ import uuid
 import keystoneclient
 from keystoneclient.v3 import client
 
+from keystoneworkout import benchmark
+
 
 ADMIN_USERNAME = 'admin'
 ADMIN_PASSWORD = 'secrete'
@@ -69,7 +71,6 @@ class BootstrapAdmin(SubCommand):
         return collection_by_name[name]
 
     def __call__(self, args):
-        # bootstrap an admin user in the default domain
         c = client.Client(
             token=args.os_token,
             endpoint=args.os_endpoint)
@@ -127,10 +128,9 @@ class BootstrapCatalog(SubCommand, AdminCommand):
     command = 'bootstrap-catalog'
 
     def __call__(self, args):
-        c = self.get_admin_client(args)
-
-        # there won't be a management URL because there's no catalog
-        c.management_url = args.os_endpoint
+        c = client.Client(
+            token=args.os_token,
+            endpoint=args.os_endpoint)
 
         services_by_type = dict((x.type, x) for x in c.services.list())
 
@@ -162,3 +162,22 @@ class BootstrapCatalog(SubCommand, AdminCommand):
                 service=identity,
                 interface='public',
                 url=args.os_endpoint)
+
+
+class BenchmarkAuth(SubCommand, AdminCommand):
+    command = 'benchmark-auth'
+
+    @classmethod
+    def configure_parser(cls, parser):
+        parser.add_argument(
+            '--benchmark-iterations', '-n',
+            type=int,
+            default=20,
+            help='Total number of of iterations to perform in each benchmark')
+
+    def __call__(self, args):
+        @benchmark.Benchmark(iterations=args.benchmark_iterations)
+        def long_authentication_flow():
+            self.get_admin_client(args)
+
+        long_authentication_flow()
