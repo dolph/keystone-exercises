@@ -169,28 +169,37 @@ class BenchmarkAuth(SubCommand, AdminCommand):
     @classmethod
     def configure_parser(cls, parser):
         parser.add_argument(
-            '--benchmark-iterations', '-n',
+            '--concurrency', '-c',
             type=int,
-            default=20,
-            help='Total number of of iterations to perform in each benchmark')
+            default=10,
+            help='Total number of threads to utilize in each benchmark')
+        parser.add_argument(
+            '--iterations', '-n',
+            type=int,
+            default=10,
+            help='Total number of task iterations each thread must perform')
 
     def __call__(self, args):
-        @benchmark.Benchmark(iterations=args.benchmark_iterations)
-        def long_authentication_flow(username, password):
-            c = client.Client(
-                username=username,
-                password=password,
-                auth_url=args.os_endpoint)
-            c.management_url = args.os_endpoint  # FIXME
+        @benchmark.Benchmark(
+            concurrency=args.concurrency,
+            iterations=args.iterations)
+        def long_authentication_flow(username, password,
+                                     iterations=args.iterations):
+            for _ in range(iterations):
+                c = client.Client(
+                    username=username,
+                    password=password,
+                    auth_url=args.os_endpoint)
+                c.management_url = args.os_endpoint  # FIXME
 
-            # find a project that we have access to
-            project = c.projects.list(user=c.auth_ref.user_id).pop()
+                # find a project that we have access to
+                project = c.projects.list(user=c.auth_ref.user_id).pop()
 
-            c = client.Client(
-                token=c.auth_token,
-                project_id=project.id,
-                project_domain_id=args.default_domain_id,  # FIXME
-                auth_url=args.os_endpoint)
-            c.authenticate()
+                c = client.Client(
+                    token=c.auth_token,
+                    project_id=project.id,
+                    project_domain_id=args.default_domain_id,  # FIXME
+                    auth_url=args.os_endpoint)
+                c.authenticate()
 
         long_authentication_flow(ADMIN_USERNAME, ADMIN_PASSWORD)

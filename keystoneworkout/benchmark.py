@@ -1,34 +1,43 @@
 import shelve
 import sys
+import threading
 import time
 
 
 class Benchmark(object):
-    def __init__(self, iterations=20):
+    def __init__(self, concurrency=10, iterations=10):
+        self.concurrency = concurrency
         self.iterations = iterations
         self.shelf = Shelf()
 
     def __call__(self, f):
-        def wrapped(*args, **kw):
+        def wrapped(*args, **kwargs):
             print 'Benchmarking', f.__name__, '...',
             sys.stdout.flush()
 
-            times = []
-            for _ in range(self.iterations):
-                start = time.time()
-                f(*args, **kw)
-                end = time.time()
-                times.append(end - start)
-            mean_time = sum(times) / self.iterations
+            # build threads
+            threads = [threading.Thread(target=f, args=args, kwargs=kwargs)
+                       for _ in range(self.concurrency)]
+
+            start = time.time()
+            for thread in threads:
+                thread.start()
+            while any(thread.is_alive() for thread in threads):
+                pass
+            end = time.time()
+            total_time = end - start
+            mean_time = total_time / (self.concurrency * self.iterations)
 
             previous = self.shelf.get(f.__name__)
-            self.shelf.set(f.__name__, mean_time)
+            self.shelf.set(f.__name__, total_time)
 
             if previous is not None:
-                percent_diff = 100.0 * (mean_time - previous) / previous
-                print '%2.3f seconds (%+2.3f%%)' % (mean_time, percent_diff)
+                percent_diff = 100.0 * (total_time - previous) / previous
+                print ('%2.3f seconds total (%+2.3f%%), %2.3f seconds per task'
+                       % (total_time, percent_diff, mean_time))
             else:
-                print '%2.3f seconds' % mean_time
+                print ('%2.3f seconds total, %2.3f seconds per task'
+                       % (total_time, mean_time))
         return wrapped
 
 
