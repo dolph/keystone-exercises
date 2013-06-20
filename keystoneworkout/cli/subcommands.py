@@ -49,8 +49,7 @@ class AdminCommand(object):
         project = c.projects.list(user=c.auth_ref.user_id).pop()
 
         return client.Client(
-            username=ADMIN_USERNAME,
-            password=ADMIN_PASSWORD,
+            token=c.auth_token,
             project_id=project.id,
             auth_url=args.os_endpoint)
 
@@ -177,7 +176,21 @@ class BenchmarkAuth(SubCommand, AdminCommand):
 
     def __call__(self, args):
         @benchmark.Benchmark(iterations=args.benchmark_iterations)
-        def long_authentication_flow():
-            self.get_admin_client(args)
+        def long_authentication_flow(username, password):
+            c = client.Client(
+                username=username,
+                password=password,
+                auth_url=args.os_endpoint)
+            c.management_url = args.os_endpoint  # FIXME
 
-        long_authentication_flow()
+            # find a project that we have access to
+            project = c.projects.list(user=c.auth_ref.user_id).pop()
+
+            c = client.Client(
+                token=c.auth_token,
+                project_id=project.id,
+                project_domain_id=args.default_domain_id,  # FIXME
+                auth_url=args.os_endpoint)
+            c.authenticate()
+
+        long_authentication_flow(ADMIN_USERNAME, ADMIN_PASSWORD)
