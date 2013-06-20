@@ -36,12 +36,6 @@ def cli():
         '--version', action='store_true',
         help='Show version number and exit')
 
-    # check for --version before we add subparsers
-    args = parser.parse_args()
-    if args.version:
-        print pkg_resources.require(PROJECT_NAME)[0]
-        sys.exit()
-
     subparsers = parser.add_subparsers(title='subcommands')
 
     for attr in dir(subcommands):
@@ -55,6 +49,11 @@ def cli():
             subparser.set_defaults(func=ref())
 
     args = parser.parse_args()
+
+    if args.version:
+        print pkg_resources.require(PROJECT_NAME)[0]
+        sys.exit()
+
     args.func(args)
 
 
