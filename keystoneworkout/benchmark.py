@@ -1,4 +1,5 @@
 import shelve
+import sys
 import time
 
 
@@ -10,6 +11,7 @@ class Benchmark(object):
     def __call__(self, f):
         def wrapped(*args, **kw):
             print 'Benchmarking', f.__name__, '...',
+            sys.stdout.flush()
 
             times = []
             for _ in range(self.iterations):
