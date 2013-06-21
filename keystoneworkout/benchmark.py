@@ -12,7 +12,7 @@ class Benchmark(object):
 
     def __call__(self, f):
         def wrapped(*args, **kwargs):
-            print 'Benchmarking', f.__name__, '...',
+            print 'Benchmarking %s...' % f.__name__,
             sys.stdout.flush()
 
             # build threads
