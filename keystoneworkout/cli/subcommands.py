@@ -207,7 +207,6 @@ class BenchmarkAuth(SubCommand, AdminCommand):
                 c = client.Client(
                     token=c.auth_token,
                     project_id=project.id,
-                    project_domain_id=args.default_domain_id,  # FIXME
                     auth_url=args.os_endpoint)
                 c.authenticate()
 
