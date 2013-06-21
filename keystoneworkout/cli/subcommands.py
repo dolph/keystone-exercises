@@ -54,6 +54,15 @@ class AdminCommand(object):
             auth_url=args.os_endpoint)
 
 
+class Bootstrap(SubCommand):
+    """Wrapper to call bootstrap-admin and bootstrap-catalog in sequence."""
+    command = 'bootstrap'
+
+    def __call__(self, args):
+        BootstrapAdmin()(args)
+        BootstrapCatalog()(args)
+
+
 class BootstrapAdmin(SubCommand):
     """Bootstraps an admin user using a pre-existing token & endpoint.
 
