@@ -1,6 +1,6 @@
-==================
-keystone-exercises
-==================
+================
+keystone-workout
+================
 
 Exercises ``keystone`` using ``python-keystoneclient``.
 

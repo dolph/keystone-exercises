@@ -7,7 +7,7 @@ setuptools.setup(
     description='Exercise keystone using python-keystoneclient',
     author='Dolph Mathews',
     author_email='dolph.mathews@gmail.com',
-    url='http://github.com/dolph/keystone-exercises',
+    url='http://github.com/dolph/keystone-workout',
     install_requires=[
         'python-keystoneclient'],
     entry_points={
