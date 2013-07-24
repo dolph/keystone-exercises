@@ -40,6 +40,7 @@ class AdminCommand(object):
     def get_admin_client(self, args):
         """Authenticates as admin using the "long" auth flow."""
         c = client.Client(
+            debug=args.debug,
             username=ADMIN_USERNAME,
             password=ADMIN_PASSWORD,
             auth_url=args.os_endpoint)
@@ -49,6 +50,7 @@ class AdminCommand(object):
         project = c.projects.list(user=c.auth_ref.user_id).pop()
 
         return client.Client(
+            debug=args.debug,
             token=c.auth_token,
             project_id=project.id,
             auth_url=args.os_endpoint)
@@ -80,6 +82,7 @@ class BootstrapAdmin(SubCommand):
 
     def __call__(self, args):
         c = client.Client(
+            debug=args.debug,
             token=args.os_token,
             endpoint=args.os_endpoint)
 
@@ -126,6 +129,7 @@ class BootstrapAdmin(SubCommand):
 
         # try to authenticate as our new admin user
         c = client.Client(
+            debug=args.debug,
             username=ADMIN_USERNAME,
             password=ADMIN_PASSWORD,
             project_name=ADMIN_PROJECT_NAME,
@@ -137,6 +141,7 @@ class BootstrapCatalog(SubCommand, AdminCommand):
 
     def __call__(self, args):
         c = client.Client(
+            debug=args.debug,
             token=args.os_token,
             endpoint=args.os_endpoint)
 
@@ -196,6 +201,7 @@ class BenchmarkAuth(SubCommand, AdminCommand):
                                      iterations=args.iterations):
             for _ in range(iterations):
                 c = client.Client(
+                    debug=args.debug,
                     username=username,
                     password=password,
                     auth_url=args.os_endpoint)
@@ -205,6 +211,7 @@ class BenchmarkAuth(SubCommand, AdminCommand):
                 project = c.projects.list(user=c.auth_ref.user_id).pop()
 
                 c = client.Client(
+                    debug=args.debug,
                     token=c.auth_token,
                     project_id=project.id,
                     auth_url=args.os_endpoint)

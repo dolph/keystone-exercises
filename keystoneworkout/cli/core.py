@@ -33,6 +33,8 @@ def cli():
     parser.add_argument(
         '--default-domain-id', default='default')
     parser.add_argument(
+        '--debug', action='store_true', default=False)
+    parser.add_argument(
         '--version', action='store_true',
         help='Show version number and exit')
 
