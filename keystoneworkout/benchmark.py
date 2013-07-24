@@ -27,17 +27,18 @@ class Benchmark(object):
             end = time.time()
             total_time = end - start
             mean_time = total_time / (self.concurrency * self.iterations)
+            task_per_sec = (self.concurrency * self.iterations) / total_time
 
             previous = self.shelf.get(f.__name__)
             self.shelf.set(f.__name__, total_time)
 
             if previous is not None:
                 percent_diff = 100.0 * (total_time - previous) / previous
-                print ('%2.3f seconds total (%+2.3f%%), %2.3f seconds per task'
-                       % (total_time, percent_diff, mean_time))
+                print ('%2.3f seconds total (%+2.3f%%), %2.3f seconds per task, %2.3f tasks per second'
+                       % (total_time, percent_diff, mean_time, task_per_sec))
             else:
-                print ('%2.3f seconds total, %2.3f seconds per task'
-                       % (total_time, mean_time))
+                print ('%2.3f seconds total, %2.3f seconds per task, %2.3f tasks per second'
+                       % (total_time, mean_time, task_per_sec))
         return wrapped
 
 
