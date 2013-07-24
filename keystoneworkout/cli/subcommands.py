@@ -13,6 +13,7 @@
 import uuid
 
 import keystoneclient
+from keystoneclient.v2_0 import client as client_v2
 from keystoneclient.v3 import client
 
 from keystoneworkout import benchmark
@@ -177,8 +178,8 @@ class BootstrapCatalog(SubCommand, AdminCommand):
                 url=args.os_endpoint)
 
 
-class BenchmarkAuth(SubCommand, AdminCommand):
-    command = 'benchmark-auth'
+class BenchmarkV3Auth(SubCommand, AdminCommand):
+    command = 'benchmark-auth-v3-long'
 
     @classmethod
     def configure_parser(cls, parser):
@@ -218,3 +219,53 @@ class BenchmarkAuth(SubCommand, AdminCommand):
                 c.authenticate()
 
         long_authentication_flow(ADMIN_USERNAME, ADMIN_PASSWORD)
+
+
+class BenchmarkV2Auth(SubCommand, AdminCommand):
+    command = 'benchmark-auth-v2-short'
+
+    @classmethod
+    def configure_parser(cls, parser):
+        parser.add_argument(
+            '--concurrency', '-c',
+            type=int,
+            default=10,
+            help='Total number of threads to utilize in each benchmark')
+        parser.add_argument(
+            '--iterations', '-n',
+            type=int,
+            default=10,
+            help='Total number of task iterations each thread must perform')
+
+    def __call__(self, args):
+        @benchmark.Benchmark(
+            concurrency=args.concurrency,
+            iterations=args.iterations)
+        def short_authentication_flow(username, password, tenant_name,
+                                      iterations=args.iterations):
+            for _ in range(iterations):
+                c = client_v2.Client(
+                    debug=args.debug,
+                    username=username,
+                    password=password,
+                    tenant_name=tenant_name,
+                    auth_url=args.os_endpoint)
+                c.authenticate()
+
+        # create a v2 admin client
+        c = client_v2.Client(
+            debug=args.debug,
+            token=args.os_token,
+            endpoint=args.os_endpoint)
+
+        # create a tenant
+        tenant_name = uuid.uuid4().hex
+        tenant = c.tenants.create(tenant_name)
+
+        # create a user with a default tenant
+        username = uuid.uuid4().hex
+        password = uuid.uuid4().hex
+        c.users.create(
+            name=username, password=password, email=None, tenant_id=tenant.id)
+
+        short_authentication_flow(username, password, tenant_name)
